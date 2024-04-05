@@ -1,4 +1,5 @@
 import { MESSAGES_BEFORE_LOGIN, ENABLE_ASSISTANTS_RAG } from "$env/static/private";
+import { startOfHour } from "date-fns";
 import { authCondition, requiresUser } from "$lib/server/auth";
 import { collections } from "$lib/server/database";
 import { models } from "$lib/server/models";
@@ -21,6 +22,7 @@ import { addChildren } from "$lib/utils/tree/addChildren.js";
 import { addSibling } from "$lib/utils/tree/addSibling.js";
 import { preprocessMessages } from "$lib/server/preprocessMessages.js";
 import { usageLimits } from "$lib/server/usageLimits";
+import { isURLLocal } from "$lib/server/isURLLocal.js";
 
 export async function POST({ request, locals, params, getClientAddress }) {
 	const id = z.string().parse(params.id);
@@ -336,21 +338,63 @@ export async function POST({ request, locals, params, getClientAddress }) {
 			);
 
 			// check if assistant has a rag
-			const rag = (
-				await collections.assistants.findOne<Pick<Assistant, "rag">>(
-					{ _id: conv.assistantId },
-					{ projection: { rag: 1 } }
-				)
-			)?.rag;
+			const assistant = await collections.assistants.findOne<
+				Pick<Assistant, "rag" | "dynamicPrompt" | "generateSettings">
+			>(
+				{ _id: conv.assistantId },
+				{ projection: { rag: 1, dynamicPrompt: 1, generateSettings: 1 } }
+			);
 
 			const assistantHasRAG =
 				ENABLE_ASSISTANTS_RAG === "true" &&
-				rag &&
-				(rag.allowedLinks.length > 0 || rag.allowedDomains.length > 0 || rag.allowAllDomains);
+				assistant &&
+				((assistant.rag &&
+					(assistant.rag.allowedLinks.length > 0 ||
+						assistant.rag.allowedDomains.length > 0 ||
+						assistant.rag.allowAllDomains)) ||
+					assistant.dynamicPrompt);
 
 			// perform websearch if needed
-			if (!isContinue && ((webSearch && !conv.assistantId) || assistantHasRAG)) {
-				messageToWriteTo.webSearch = await runWebSearch(conv, messagesForPrompt, update, rag);
+			if (
+				!isContinue &&
+				((webSearch && !conv.assistantId) || (assistantHasRAG && !assistant.dynamicPrompt))
+			) {
+				messageToWriteTo.webSearch = await runWebSearch(
+					conv,
+					messagesForPrompt,
+					update,
+					assistant?.rag
+				);
+			}
+
+			let preprompt = conv.preprompt;
+
+			if (assistant?.dynamicPrompt && preprompt && ENABLE_ASSISTANTS_RAG === "true") {
+				// process the preprompt
+				const urlRegex = /{{\s?url=(.*?)\s?}}/g;
+				let match;
+				while ((match = urlRegex.exec(preprompt)) !== null) {
+					try {
+						const url = new URL(match[1]);
+						if (await isURLLocal(url)) {
+							throw new Error("URL couldn't be fetched, it resolved to a local address.");
+						}
+
+						const res = await fetch(url.href);
+
+						if (!res.ok) {
+							throw new Error("URL couldn't be fetched, error " + res.status);
+						}
+						const text = await res.text();
+						preprompt = preprompt.replaceAll(match[0], text);
+					} catch (e) {
+						preprompt = preprompt.replaceAll(match[0], (e as Error).message);
+					}
+				}
+
+				if (messagesForPrompt[0].from === "system") {
+					messagesForPrompt[0].content = preprompt;
+				}
 			}
 
 			// inject websearch result & optionally images into the messages
@@ -363,21 +407,32 @@ export async function POST({ request, locals, params, getClientAddress }) {
 
 			const previousText = messageToWriteTo.content;
 
+			let hasError = false;
+
+			let buffer = "";
+
 			try {
 				const endpoint = await model.getEndpoint();
 				for await (const output of await endpoint({
 					messages: processedMessages,
-					preprompt: conv.preprompt,
+					preprompt,
 					continueMessage: isContinue,
+					generateSettings: assistant?.generateSettings,
 				})) {
 					// if not generated_text is here it means the generation is not done
 					if (!output.generated_text) {
-						// else we get the next token
 						if (!output.token.special) {
-							update({
-								type: "stream",
-								token: output.token.text,
-							});
+							// 33% chance to send the stream update, with a max buffer size of 30 chars
+							buffer += output.token.text;
+
+							if (Math.random() < 0.33 || buffer.length > 30) {
+								update({
+									type: "stream",
+									token: buffer,
+								});
+								buffer = "";
+							}
+
 							// abort check
 							const date = abortedGenerations.get(convId.toString());
 							if (date && date > promptedAt) {
@@ -408,14 +463,22 @@ export async function POST({ request, locals, params, getClientAddress }) {
 					}
 				}
 			} catch (e) {
+				hasError = true;
 				update({ type: "status", status: "error", message: (e as Error).message });
 			} finally {
 				// check if no output was generated
-				if (messageToWriteTo.content === previousText) {
+				if (!hasError && messageToWriteTo.content === previousText) {
 					update({
 						type: "status",
 						status: "error",
 						message: "No output was generated. Something went wrong.",
+					});
+				}
+
+				if (buffer) {
+					update({
+						type: "stream",
+						token: buffer,
 					});
 				}
 			}
@@ -462,6 +525,14 @@ export async function POST({ request, locals, params, getClientAddress }) {
 			}
 		},
 	});
+
+	if (conv.assistantId) {
+		await collections.assistantStats.updateOne(
+			{ assistantId: conv.assistantId, "date.at": startOfHour(new Date()), "date.span": "hour" },
+			{ $inc: { count: 1 } },
+			{ upsert: true }
+		);
+	}
 
 	// Todo: maybe we should wait for the message to be saved before ending the response - in case of errors
 	return new Response(stream, {
