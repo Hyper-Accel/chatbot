@@ -1,0 +1,35 @@
+{
+  "name": "huggyllama/llama-30b",
+  "displayName": "huggyllama/llama-30b",
+  "description": "This contains the weights for the LLaMA-30b model. This model is under a non-commercial license (see the LICENSE file). You should only use this repository if you have been granted access to the model by filling out this form but either lost your copy of the weights or got some trouble converting them to the Transformers format.",
+  "websiteUrl": "https://huggingface.co/huggyllama/llama-30b",
+  "logoUrl": "https://aeiljuispo.cloudimg.io/v7/https://cdn-uploads.huggingface.co/production/uploads/646cf8084eefb026fb8fd8bc/oCTqufkdTkjyGodsx1vo1.png?w=200&h=200&f=face",
+  "modelUrl": "https://huggingface.co/huggyllama/llama-30b",
+  "preprompt": "",
+  "chatPromptTemplate" : "{{#each messages}}<s>{{content}}</s>{{/each}}",
+  "parameters": {
+    "temperature": 0.1,
+    "top_p": 0.95,
+    "repetition_penalty": 1.2,
+    "top_k": 50,
+    "truncate": 128,
+    "max_new_tokens": 1024,
+    "stop": ["</s>"]
+  },
+  "promptExamples": [
+    {
+      "title": "Write an email from bullet list",
+      "prompt": "As a restaurant owner, write a professional email to the supplier to get these products every week: \n\n- Wine (x10)\n- Eggs (x24)\n- Bread (x12)"
+    }, {
+      "title": "Code a snake game",
+      "prompt": "Code a basic snake game in python, give explanations for each step."
+    }, {
+      "title": "Assist in a task",
+      "prompt": "How do I make a delicious lemon cheesecake?"
+    }
+  ],
+  "endpoints": [{
+    "type" : "tgi",
+    "url": "http://115.94.84.131:8000"
+  }]
+}

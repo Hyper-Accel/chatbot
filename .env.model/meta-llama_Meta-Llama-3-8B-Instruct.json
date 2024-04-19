@@ -1,0 +1,35 @@
+{
+  "name": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "displayName": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "description": "Meta developed and released the Meta Llama 3 family of large language models (LLMs), a collection of pretrained and instruction tuned generative text models in 8 and 70B sizes.",
+  "websiteUrl": "https://llama.meta.com/",
+  "logoUrl": "https://aeiljuispo.cloudimg.io/v7/https://cdn-uploads.huggingface.co/production/uploads/646cf8084eefb026fb8fd8bc/oCTqufkdTkjyGodsx1vo1.png?w=200&h=200&f=face",
+  "modelUrl": "https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct",
+  "preprompt": "",
+  "chatPromptTemplate" : "<|begin_of_text|>{{#each messages}}{{#ifUser}}{{#if @first}}{{#if @root.preprompt}}<|start_header_id|>system<|end_header_id|>\n\n{{@root.preprompt}}<|eot_id|>{{/if}}<|start_header_id|>user<|end_header_id|>\n\n{{/if}}{{content}}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{{/ifUser}}{{#ifAssistant}}{{content}}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{{/ifAssistant}}{{/each}}",
+  "parameters": {
+    "temperature": 0.1,
+    "top_p": 0.95,
+    "repetition_penalty": 1.2,
+    "top_k": 50,
+    "truncate": 128,
+    "max_new_tokens": 2048,
+    "stop": ["</s>"]
+  },
+  "promptExamples": [
+    {
+      "title": "Write an email from bullet list",
+      "prompt": "As a restaurant owner, write a professional email to the supplier to get these products every week: \n\n- Wine (x10)\n- Eggs (x24)\n- Bread (x12)"
+    }, {
+      "title": "Code a snake game",
+      "prompt": "Code a basic snake game in python, give explanations for each step."
+    }, {
+      "title": "Assist in a task",
+      "prompt": "How do I make a delicious lemon cheesecake?"
+    }
+  ],
+  "endpoints": [{
+    "type" : "tgi",
+    "url": "http://14.52.177.170:8000"
+  }]
+}

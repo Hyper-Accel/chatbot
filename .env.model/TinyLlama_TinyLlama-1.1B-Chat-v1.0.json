@@ -1,0 +1,35 @@
+{
+  "name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "displayName": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "description": "The TinyLlama project aims to pretrain a 1.1B Llama model on 3 trillion tokens. With some proper optimization, we can achieve this within a span of just 90 days using 16 A100-40G GPUs. The training has started on 2023-09-01.",
+  "websiteUrl": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "logoUrl": "https://aeiljuispo.cloudimg.io/v7/https://cdn-uploads.huggingface.co/production/uploads/63565cc56d7fcf1bedb7d347/DRv8Ln7nvK22iXkLmAGb_.png?w=200&h=200&f=face",
+  "modelUrl": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+  "preprompt": "",
+  "chatPromptTemplate" : "<|system|>\n{{preprompt}}</s>\n{{#each messages}}{{#ifUser}}<|user|>\n{{content}}</s>\n<|assistant|>\n{{/ifUser}}{{#ifAssistant}}{{content}}</s>\n{{/ifAssistant}}{{/each}}",
+  "parameters": {
+    "temperature": 0.1,
+    "top_p": 0.95,
+    "repetition_penalty": 1.2,
+    "top_k": 50,
+    "truncate": 512,
+    "max_new_tokens": 1536,
+    "stop": ["</s>"]
+  },
+  "promptExamples": [
+    {
+      "title": "Write an email from bullet list",
+      "prompt": "As a restaurant owner, write a professional email to the supplier to get these products every week: \n\n- Wine (x10)\n- Eggs (x24)\n- Bread (x12)"
+    }, {
+      "title": "Code a snake game",
+      "prompt": "Code a basic snake game in python, give explanations for each step."
+    }, {
+      "title": "Assist in a task",
+      "prompt": "How do I make a delicious lemon cheesecake?"
+    }
+  ],
+  "endpoints": [{
+    "type" : "tgi",
+    "url": "http://192.168.0.143:8000"
+  }]
+}
