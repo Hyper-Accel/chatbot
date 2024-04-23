@@ -3,7 +3,7 @@
   "displayName": "beomi/OPEN-SOLAR-KO-10.7B",
   "description": "Solar-Ko represents an advanced iteration of the upstage/SOLAR-10.7B-v1.0 model, featuring an expanded vocabulary and the inclusion of a Korean corpus for enhanced pretraining.",
   "websiteUrl": "https://huggingface.co/beomi/OPEN-SOLAR-KO-10.7B",
-  "logoUrl": "https://aeiljuispo.cloudimg.io/v7/https://cdn-uploads.huggingface.co/production/uploads/649144feeb13c70f7671c603/bUxWC5jKltd-MyrrCNCv5.png?w=200&h=200&f=face",
+  "logoUrl": "https://aeiljuispo.cloudimg.io/v7/https://cdn-uploads.huggingface.co/production/uploads/1623302508605-5e56829137cb5b49818287ea.jpeg?w=200&h=200&f=face",
   "modelUrl": "https://huggingface.co/beomi/OPEN-SOLAR-KO-10.7B",
   "preprompt": "",
   "chatPromptTemplate" : "{{#each messages}}<s>{{content}}</s>{{/each}}",

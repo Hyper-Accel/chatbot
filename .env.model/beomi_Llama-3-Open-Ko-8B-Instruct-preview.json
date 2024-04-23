@@ -1,10 +1,10 @@
 {
-  "name": "meta-llama/Meta-Llama-3-8B-Instruct",
-  "displayName": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "name": "beomi/Llama-3-Open-Ko-8B-Instruct-preview",
+  "displayName": "beomi/Llama-3-Open-Ko-8B-Instruct-preview",
   "description": "Meta developed and released the Meta Llama 3 family of large language models (LLMs), a collection of pretrained and instruction tuned generative text models in 8 and 70B sizes.",
-  "websiteUrl": "https://llama.meta.com/",
-  "logoUrl": "https://aeiljuispo.cloudimg.io/v7/https://cdn-uploads.huggingface.co/production/uploads/646cf8084eefb026fb8fd8bc/oCTqufkdTkjyGodsx1vo1.png?w=200&h=200&f=face",
-  "modelUrl": "https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct",
+  "websiteUrl": "https://huggingface.co/beomi/Llama-3-Open-Ko-8B-Instruct-preview",
+  "logoUrl": "https://aeiljuispo.cloudimg.io/v7/https://cdn-uploads.huggingface.co/production/uploads/1623302508605-5e56829137cb5b49818287ea.jpeg?w=200&h=200&f=face",
+  "modelUrl": "https://huggingface.co/beomi/Llama-3-Open-Ko-8B-Instruct-preview",
   "preprompt": "",
   "chatPromptTemplate" : "<|begin_of_text|>{{#each messages}}{{#ifUser}}{{#if @first}}{{#if @root.preprompt}}<|start_header_id|>system<|end_header_id|>\n\n{{@root.preprompt}}<|eot_id|>{{/if}}<|start_header_id|>user<|end_header_id|>\n\n{{/if}}{{content}}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{{/ifUser}}{{#ifAssistant}}{{content}}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{{/ifAssistant}}{{/each}}",
   "parameters": {
