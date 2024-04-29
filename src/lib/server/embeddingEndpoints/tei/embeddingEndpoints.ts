@@ -1,13 +1,17 @@
 import { z } from "zod";
 import type { EmbeddingEndpoint, Embedding } from "../embeddingEndpoints";
 import { chunk } from "$lib/utils/chunk";
+import { HF_TOKEN } from "$env/static/private";
 
 export const embeddingEndpointTeiParametersSchema = z.object({
 	weight: z.number().int().positive().default(1),
 	model: z.any(),
 	type: z.literal("tei"),
 	url: z.string().url(),
-	authorization: z.string().optional(),
+	authorization: z
+		.string()
+		.optional()
+		.transform((v) => (!v && HF_TOKEN ? "Bearer " + HF_TOKEN : v)), // if the header is not set but HF_TOKEN is, use it as the authorization header
 });
 
 const getModelInfoByUrl = async (url: string, authorization?: string) => {
@@ -21,8 +25,13 @@ const getModelInfoByUrl = async (url: string, authorization?: string) => {
 		},
 	});
 
-	const json = await response.json();
-	return json;
+	try {
+		const json = await response.json();
+		return { max_client_batch_size: 32, max_batch_tokens: 16384, ...json };
+	} catch {
+		console.log("Could not get info from TEI embedding endpoint. Using defaults.");
+		return { max_client_batch_size: 32, max_batch_tokens: 16384 };
+	}
 };
 
 export async function embeddingEndpointTei(

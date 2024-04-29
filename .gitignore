@@ -13,3 +13,4 @@ SECRET_CONFIG
 !.env
 !.env.template
 !.env.model
+gcp-*.json
