@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { base } from "$app/paths";
-	import { PUBLIC_ORIGIN } from "$env/static/public";
+	import { env as envPublic } from "$env/dynamic/public";
 	import type { BackendModel } from "$lib/server/models";
 	import { useSettingsStore } from "$lib/stores/settings";
 	import CopyToClipBoardBtn from "$lib/components/CopyToClipBoardBtn.svelte";
 	import TokensCounter from "$lib/components/TokensCounter.svelte";
 	import CarbonArrowUpRight from "~icons/carbon/arrow-up-right";
 	import CarbonLink from "~icons/carbon/link";
+	import CarbonChat from "~icons/carbon/chat";
+
+	import { goto } from "$app/navigation";
 
 	const settings = useSettingsStore();
 
@@ -22,8 +25,6 @@
 	$: hasCustomPreprompt =
 		$settings.customPrompts[$page.params.model] !==
 		$page.data.models.find((el: BackendModel) => el.id === $page.params.model)?.preprompt;
-
-	$: isActive = $settings.activeModel === $page.params.model;
 
 	$: model = $page.data.models.find((el: BackendModel) => el.id === $page.params.model);
 </script>
@@ -78,7 +79,7 @@
 			</a>
 		{/if}
 		<CopyToClipBoardBtn
-			value="{PUBLIC_ORIGIN || $page.url.origin}{base}/models/{model.id}"
+			value="{envPublic.PUBLIC_ORIGIN || $page.url.origin}{base}/models/{model.id}"
 			classNames="!border-none !shadow-none !py-0 !px-1 !rounded-md"
 		>
 			<div class="flex items-center gap-1.5 hover:underline">
@@ -88,16 +89,17 @@
 	</div>
 
 	<button
-		class="{isActive
-			? 'bg-gray-100'
-			: 'bg-black text-white'} my-8 flex items-center rounded-full px-3 py-1"
-		disabled={isActive}
+		class="my-2 flex w-fit items-center rounded-full bg-black px-3 py-1 text-base !text-white"
 		name="Activate model"
 		on:click|stopPropagation={() => {
-			$settings.activeModel = $page.params.model;
+			settings.instantSet({
+				activeModel: $page.params.model,
+			});
+			goto(`${base}/`);
 		}}
 	>
-		{isActive ? "Active model" : "Activate"}
+		<CarbonChat class="mr-1.5 text-sm" />
+		New chat
 	</button>
 
 	<div class="relative flex w-full flex-col gap-2">
